@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 
-# Sample data - replace this with your actual data loading logic
+# Sample data
 data = [
     {"name": "Kernel A", "M": 1024, "N": 1024, "K": 1024, "tflops": 100, "batch": 32, "dtype": "f32", "model": "modelX"},
     {"name": "Kernel B", "M": 2048, "N": 2048, "K": 2048, "tflops": 80, "batch": 64, "dtype": "f16", "model": "modelY"},
@@ -18,14 +18,13 @@ data = [
 ]
 
 df = pd.DataFrame(data)
-
-# Calculate total operations
 df['total_ops'] = df['M'] * df['N'] * df['K']
+df['arithmetic_intensity'] = 2 * df['K'] / (4 + 4 + 4)  # Assuming single precision
 
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("GEMM Kernel Size 2D Visualizer"),
+    html.H1("GEMM Kernel Visualizer"),
     
     html.Div([
         dcc.Dropdown(
@@ -37,7 +36,7 @@ app.layout = html.Div([
         dcc.Dropdown(
             id='dtype-dropdown',
             options=[{'label': 'All Dtypes', 'value': 'all'}] + 
-                    [{'label': d, 'value': d} for d in df['dtype'].unique()],
+                    [{'label': d, 'value': d} for b in df['dtype'].unique()],
             value='all'
         ),
         dcc.Dropdown(
@@ -49,10 +48,10 @@ app.layout = html.Div([
     ], style={'width': '50%', 'display': 'flex', 'justifyContent': 'space-between'}),
     
     dcc.Tabs([
-        dcc.Tab(label='2D Roofline Plot', children=[
-            dcc.Graph(id='2d-roofline-plot')
+        dcc.Tab(label='Roofline Plot', children=[
+            dcc.Graph(id='roofline-plot')
         ]),
-        dcc.Tab(label='Performance Heatmap', children=[
+        dcc.Tab(label='Heatmap', children=[
             dcc.Graph(id='heatmap')
         ]),
         dcc.Tab(label='Split Charts', children=[
@@ -65,12 +64,12 @@ app.layout = html.Div([
 ])
 
 @app.callback(
-    [Output('2d-roofline-plot', 'figure'),
+    [Output('roofline-plot', 'figure'),
      Output('heatmap', 'figure'),
      Output('size-chart', 'figure'),
      Output('performance-chart', 'figure')],
     [Input('batch-dropdown', 'value'),
-     Input('dtype-dropdown', 'value'),
+     Input('dtype-dropout', 'value'),
      Input('model-dropdown', 'value')]
 )
 def update_graphs(selected_batch, selected_dtype, selected_model):
@@ -82,56 +81,52 @@ def update_graphs(selected_batch, selected_dtype, selected_model):
     if selected_model != 'all':
         filtered_df = filtered_df[filtered_df['model'] == selected_model]
     
-    # 2D Roofline Plot
-    roofline_fig = go.Figure()
+    # Roofline Plot
+    peak_memory_bandwidth = 900  # GB/s, adjust based on your hardware
+    peak_compute = 19500  # GFLOP/s, adjust based on your hardware
+    x_range = np.logspace(0, 4, 100)
+    y_memory = peak_memory_bandwidth * x_range
+    y_compute = np.full_like(x_range, peak_compute)
+    y_roofline = np.minimum(y_memory, y_compute)
 
-    # Add scatter plot for kernels
+    roofline_fig = go.Figure()
     roofline_fig.add_trace(go.Scatter(
-        x=filtered_df['total_ops'],
-        y=filtered_df['tflops'],
+        x=filtered_df['arithmetic_intensity'],
+        y=filtered_df['tflops'] * 1000,  # Convert TFLOP/s to GFLOP/s
         mode='markers',
         marker=dict(
-            size=filtered_df['K'] / 100,  # Adjust scaling as needed
-            color=filtered_df['M'],
+            size=10,
+            color=filtered_df['total_ops'],
             colorscale='Viridis',
-            colorbar=dict(title='M Dimension'),
-            showscale=True,
+            colorbar=dict(title='Total Ops'),
+            showscale=True
         ),
-        text=[f"Kernel: {name}<br>M={m}, N={n}, K={k}<br>Total Ops: {ops:,.0f}<br>Performance: {perf:.2f} TFLOP/s"
-              for name, m, n, k, ops, perf in zip(filtered_df['name'], filtered_df['M'], 
-                                                  filtered_df['N'], filtered_df['K'], 
-                                                  filtered_df['total_ops'], filtered_df['tflops'])],
+        text=[f"Kernel: {name}<br>M={m}, N={n}, K={k}<br>Performance: {perf:.2f} TFLOP/s"
+              for name, m, n, k, perf in zip(filtered_df['name'], filtered_df['M'], filtered_df['N'], filtered_df['K'], filtered_df['tflops'])],
         hoverinfo='text',
         name='Kernels'
     ))
-
-    # Add roof line
-    peak_performance = max(filtered_df['tflops']) * 1.1  # 10% above max for visualization
-    x_range = np.logspace(np.log10(min(filtered_df['total_ops'])), np.log10(max(filtered_df['total_ops'])), 100)
     roofline_fig.add_trace(go.Scatter(
         x=x_range,
-        y=[peak_performance] * len(x_range),
+        y=y_roofline,
         mode='lines',
-        line=dict(color='red', dash='dash'),
-        name='Peak Performance'
+        name='Roofline',
+        line=dict(color='red', dash='dash')
     ))
-
     roofline_fig.update_layout(
-        title='2D Roofline Plot: GEMM Kernel Sizes vs Performance',
-        xaxis_title='Total Operations (M * N * K)',
-        yaxis_title='Performance (TFLOP/s)',
+        title='Roofline Plot',
+        xaxis_title='Arithmetic Intensity (FLOP/byte)',
+        yaxis_title='Performance (GFLOP/s)',
         xaxis_type='log',
-        legend=dict(x=0.01, y=0.99, bgcolor='rgba(255, 255, 255, 0.5)'),
-        height=600
+        yaxis_type='log'
     )
     
     # Heatmap
     heatmap_fig = go.Figure(data=go.Heatmap(
-        z=[filtered_df['tflops']],
+        z=filtered_df['tflops'],
         x=filtered_df['name'],
         y=['Performance'],
-        colorscale='Viridis',
-        colorbar=dict(title='TFLOP/s')
+        colorscale='Viridis'
     ))
     heatmap_fig.update_layout(
         title='Performance Heatmap',
@@ -165,4 +160,4 @@ def update_graphs(selected_batch, selected_dtype, selected_model):
     return roofline_fig, heatmap_fig, size_fig, perf_fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True, reload=False)
+    app.run_server(debug=True)
