@@ -116,34 +116,6 @@ To customize the visualizations or add new features:
 2. Update the `app/requirements.txt` if you add new dependencies.
 3. Rebuild the Docker image and redeploy if necessary.
 
-# RUNNING LOCALLY 
-
-## Features
-
-- **Interactive Filtering**: Filter data by batch size, data type, and model.
-- **Roofline Plot**: Visualize kernel performance in relation to arithmetic intensity and hardware limits.
-- **Performance Heatmap**: Quickly identify high and low performing kernels.
-- **Split Charts**: Compare arithmetic intensity and performance across kernels.
-
-## Installation
-
-1. Ensure you have Python 3.7+ installed on your system.
-2. Clone this repository or download the `kernel_benchmark_visualizer.py` file.
-3. Install the required packages:
-
-```bash
-pip install dash pandas plotly numpy
-```
-
-## Usage
-
-1. Run the script:
-
-```bash
-python kernel_benchmark_visualizer.py
-```
-
-2. Open a web browser and go to `http://127.0.0.1:8050/`
 
 ## Interactive Plots
 
