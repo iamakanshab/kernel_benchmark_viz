@@ -1,6 +1,122 @@
+
 # Kernel Benchmark Visualizer
 
-This interactive web application visualizes kernel benchmark data using Python, Dash, and Plotly. It provides multiple views of your benchmark results, including a Roofline Plot, Performance Heatmap, and Split Charts for Arithmetic Intensity and Performance.
+Kernel Benchmark Visualizer is a web-based dashboard for visualizing and analyzing the performance of General Matrix Multiplication (GEMM) kernels. It provides interactive visualizations including a Roofline plot, performance heatmap, and size comparisons of different GEMM kernels.
+
+## Features
+
+- Interactive Roofline Plot
+- Performance Heatmap
+- Kernel Size Comparison Charts
+- Filtering by batch size, data type, and model
+- Kubernetes-ready deployment
+
+## Prerequisites
+
+- Python 3.9+
+- Docker
+- Kubernetes cluster (for deployment)
+- kubectl
+
+## Directory Structure
+
+```
+gemm-kernel-visualizer/
+│
+├── app/
+│   ├── gemm_kernel_visualizer.py
+│   └── requirements.txt
+│
+├── kubernetes/
+│   └── deployment.yaml
+│
+├── Dockerfile
+│
+└── README.md
+```
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/gemm-kernel-visualizer.git
+   cd gemm-kernel-visualizer
+   ```
+
+2. Install the required Python packages:
+   ```
+   pip install -r app/requirements.txt
+   ```
+
+## Local Usage
+
+To run the application locally:
+
+1. Navigate to the `app` directory:
+   ```
+   cd app
+   ```
+
+2. Run the Python script:
+   ```
+   python gemm_kernel_visualizer.py
+   ```
+
+3. Open a web browser and go to `http://127.0.0.1:8050/` to view the dashboard.
+
+## Docker Build
+
+To build the Docker image:
+
+1. Ensure you're in the root directory of the project.
+
+2. Build the image:
+   ```
+   docker build -t gemm-kernel-visualizer:latest .
+   ```
+
+3. Run the container locally (optional):
+   ```
+   docker run -p 8050:8050 gemm-kernel-visualizer:latest
+   ```
+
+## Kubernetes Deployment
+
+To deploy the application to a Kubernetes cluster:
+
+1. Push the Docker image to a container registry:
+   ```
+   docker tag gemm-kernel-visualizer:latest your-registry/gemm-kernel-visualizer:latest
+   docker push your-registry/gemm-kernel-visualizer:latest
+   ```
+
+2. Update the `kubernetes/deployment.yaml` file with your image name.
+
+3. Apply the Kubernetes deployment:
+   ```
+   kubectl apply -f kubernetes/deployment.yaml
+   ```
+
+4. Check the deployment status:
+   ```
+   kubectl get deployments
+   kubectl get pods
+   kubectl get services
+   ```
+
+5. Access the application:
+   - If using Minikube: `minikube service gemm-kernel-visualizer-service`
+   - If using a cloud provider, check the external IP of the LoadBalancer service
+
+## Customization
+
+To customize the visualizations or add new features:
+
+1. Modify the `app/gemm_kernel_visualizer.py` file.
+2. Update the `app/requirements.txt` if you add new dependencies.
+3. Rebuild the Docker image and redeploy if necessary.
+
+# RUNNING LOCALLY 
 
 ## Features
 
