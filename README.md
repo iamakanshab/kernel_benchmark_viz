@@ -33,8 +33,6 @@ python kernel_benchmark_visualizer.py
 
 ### Roofline Plot
 
-![Roofline Plot](https://via.placeholder.com/600x400.png?text=Roofline+Plot)
-
 The Roofline Plot shows:
 - Scatter points representing individual kernels
 - X-axis: Arithmetic Intensity (FLOP/byte)
@@ -47,8 +45,6 @@ Interactivity:
 
 ### Performance Heatmap
 
-![Performance Heatmap](https://via.placeholder.com/600x400.png?text=Performance+Heatmap)
-
 The Heatmap displays:
 - Kernels on the X-axis
 - Performance intensity represented by color
@@ -58,8 +54,6 @@ Interactivity:
 - Use the color scale to identify high and low performing kernels
 
 ### Split Charts
-
-![Split Charts](https://via.placeholder.com/600x400.png?text=Split+Charts)
 
 The Split Charts show:
 1. Arithmetic Intensity Chart:
