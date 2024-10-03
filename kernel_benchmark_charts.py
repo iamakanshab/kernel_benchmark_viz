@@ -36,7 +36,7 @@ app.layout = html.Div([
         dcc.Dropdown(
             id='dtype-dropdown',
             options=[{'label': 'All Dtypes', 'value': 'all'}] + 
-                    [{'label': d, 'value': d} for b in df['dtype'].unique()],
+                    [{'label': d, 'value': d} for d in df['dtype'].unique()],
             value='all'
         ),
         dcc.Dropdown(
@@ -69,7 +69,7 @@ app.layout = html.Div([
      Output('size-chart', 'figure'),
      Output('performance-chart', 'figure')],
     [Input('batch-dropdown', 'value'),
-     Input('dtype-dropout', 'value'),
+     Input('dtype-dropdown', 'value'),
      Input('model-dropdown', 'value')]
 )
 def update_graphs(selected_batch, selected_dtype, selected_model):
@@ -96,10 +96,8 @@ def update_graphs(selected_batch, selected_dtype, selected_model):
         mode='markers',
         marker=dict(
             size=10,
-            color=filtered_df['total_ops'],
-            colorscale='Viridis',
-            colorbar=dict(title='Total Ops'),
-            showscale=True
+            color='blue',  # Single color for all dots
+            symbol='circle',
         ),
         text=[f"Kernel: {name}<br>M={m}, N={n}, K={k}<br>Performance: {perf:.2f} TFLOP/s"
               for name, m, n, k, perf in zip(filtered_df['name'], filtered_df['M'], filtered_df['N'], filtered_df['K'], filtered_df['tflops'])],
@@ -123,7 +121,7 @@ def update_graphs(selected_batch, selected_dtype, selected_model):
     
     # Heatmap
     heatmap_fig = go.Figure(data=go.Heatmap(
-        z=filtered_df['tflops'],
+        z=[filtered_df['tflops']],
         x=filtered_df['name'],
         y=['Performance'],
         colorscale='Viridis'
@@ -160,4 +158,4 @@ def update_graphs(selected_batch, selected_dtype, selected_model):
     return roofline_fig, heatmap_fig, size_fig, perf_fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, reload=False)
