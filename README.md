@@ -39,7 +39,7 @@ gemm-kernel-visualizer/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/gemm-kernel-visualizer.git
+   git clone https://github.com/iamakanshab/gemm-kernel-visualizer.git
    cd gemm-kernel-visualizer
    ```
 
